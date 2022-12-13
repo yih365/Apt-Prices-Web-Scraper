@@ -1,4 +1,4 @@
-# aptPricesWebScraper
+# Apt-Prices-Web-Scraper
 Scrape websites for apartment listings
 
 Selenium to access html files
