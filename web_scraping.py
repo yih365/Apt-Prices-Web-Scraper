@@ -17,13 +17,14 @@ def main():
     listings = {}
 
     craigslist(driver, sites_dict['craigslist_LA'], listings)
-    # apartments(driver, sites_dict['apartments_LA'], listings)
-    # zillow(driver, sites_dict['zillow_LA'], listings)
+    # TODO: apartments(driver, sites_dict['apartments_LA'], listings)
+    zillow(driver, sites_dict['zillow_LA'], listings)
 
-    # TODO: sort listings
-    sorted_listings = listings.values()
+    # sort listings
+    sorted_listings = sorted(listings.items(), key=lambda x: x[1]['price_number'])
     # Print listings
     for listing in sorted_listings:
+        listing = listing[1]
         print(listing['price'])
         print(listing['address'])
         print(listing['details'])
@@ -61,11 +62,11 @@ def zillow(driver, url, listings):
             link = 'https://www.zillow.com/homedetails' + link[2:]
 
         # Save text representation of the html results
-        listings[div] = {'price': price_res.text, 'address': address_res.text, 'details': details, 'link': link}
-        # TODO: have price as an int
+        listings[div] = {'price_number': price_to_int(price_res.text), 'price': price_res.text, 'address': address_res.text, 'details': details, 'link': link}
 
 
 def apartments(driver, url, listings):
+    # TODO:
     driver.get(url)
     html = driver.page_source
 
@@ -83,7 +84,6 @@ def craigslist(driver, url, listings):
     for div in divs:
         title_res = div.find(class_ = "titlestring")
         price_res = div.find(class_ = "priceinfo")
-        print(title_res, price_res)
         if title_res is None or price_res is None:
             continue
 
@@ -93,7 +93,20 @@ def craigslist(driver, url, listings):
             location = meta_res.text
 
         link = title_res['href']
-        listings[div] = {'price': price_res.text, 'address': location, 'details': title_res.text, 'link': link}
+        listings[div] = {'price_number': price_to_int(price_res.text), 'price': price_res.text, 'address': location, 'details': title_res.text, 'link': link}
+
+
+PRICE_REGEX = re.compile(r"\$\d+(,\d+)?")
+def price_to_int(price_text):
+    # Price to int using regex
+    price = PRICE_REGEX.search(price_text).group(0).split(',')
+
+    if len(price) == 1:
+        # There was no comma
+        return int(price[0][1:])
+
+    price = price[0][1:] + price[1]
+    return int(price)
 
 
 if __name__ == '__main__':
