@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
-import requests
+import csv
 import time
 import re
 
@@ -22,14 +22,34 @@ def main():
 
     # sort listings
     sorted_listings = sorted(listings.items(), key=lambda x: x[1]['price_number'])
-    # Print listings
-    for listing in sorted_listings:
-        listing = listing[1]
-        print(listing['price'])
-        print(listing['address'])
-        print(listing['details'])
-        print(listing['link'])
-        print()
+
+    print_prompt = input("Would you like to print the results? (y/n) ")
+    if print_prompt == 'y':
+        # Print listings
+        for listing in sorted_listings:
+            listing = listing[1]
+            print(listing['price'])
+            print(listing['address'])
+            print(listing['details'])
+            print(listing['link'])
+            print()
+
+    path = input("Full path of csv file: ")
+    csv_write(path, sorted_listings)
+
+
+def csv_write(path, listings):
+    with open(path, 'w') as f:
+        fieldnames = ['price_number', 'price', 'address', 'details', 'link']
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for listing in listings:
+            try:
+                writer.writerow(listing[1])
+            except:
+                # Users may have used unencodable characters as descriptions (such as some emojis)
+                listing[1]['details'] = ''
+                writer.writerow(listing[1])
 
 
 def zillow(driver, url, listings):
