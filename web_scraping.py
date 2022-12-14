@@ -16,9 +16,9 @@ def main():
 
     listings = {}
 
-    # craigslist(driver, sites_dict['craigslist_LA'], listings)
+    craigslist(driver, sites_dict['craigslist_LA'], listings)
     # apartments(driver, sites_dict['apartments_LA'], listings)
-    zillow(driver, sites_dict['zillow_LA'], listings)
+    # zillow(driver, sites_dict['zillow_LA'], listings)
 
     # TODO: sort listings
     sorted_listings = listings.values()
@@ -65,7 +65,7 @@ def zillow(driver, url, listings):
         # TODO: have price as an int
 
 
-def apartments(driver, url):
+def apartments(driver, url, listings):
     driver.get(url)
     html = driver.page_source
 
@@ -73,22 +73,27 @@ def apartments(driver, url):
     print(doc)
 
 
-def craigslist(driver, url):
+def craigslist(driver, url, listings):
     driver.get(url)
     time.sleep(3)
     html = driver.page_source
-
     doc = BeautifulSoup(html, "html.parser")
-    print(doc)
 
-    # try:
-    #     div = doc.find_all(class_ = "cl-result-info gallery-layout")
-    #     print(len(div))
-    #     print(div)
-    #     # link = div.find_all(class_ = "titlestring")
-    #     # print(link)
-    # except:
-    #     print("Something went wrong. Possible connection error")
+    divs = doc.find_all(class_ = "cl-result-info gallery-layout")
+    for div in divs:
+        title_res = div.find(class_ = "titlestring")
+        price_res = div.find(class_ = "priceinfo")
+        print(title_res, price_res)
+        if title_res is None or price_res is None:
+            continue
+
+        meta_res = div.find(class_ = "meta")
+        location = ''
+        if meta_res is not None:
+            location = meta_res.text
+
+        link = title_res['href']
+        listings[div] = {'price': price_res.text, 'address': location, 'details': title_res.text, 'link': link}
 
 
 if __name__ == '__main__':
