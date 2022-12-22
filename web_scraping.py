@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
+import matplotlib.pyplot as plt
 import csv
 import time
 import re
@@ -36,6 +37,7 @@ def main():
 
     path = input("Full path of csv file: ")
     csv_write(path, sorted_listings)
+    csv_display(path)
 
 
 def csv_write(path, listings):
@@ -50,6 +52,28 @@ def csv_write(path, listings):
                 # Users may have used unencodable characters as descriptions (such as some emojis)
                 listing[1]['details'] = ''
                 writer.writerow(listing[1])
+
+
+def csv_display(path):
+    with open(path, 'r') as file:
+        reader = csv.DictReader(file, delimiter=',')
+
+        sites = []
+        prices = []
+        reader = list(reader)
+        for row in reader:
+            if row['link'].find('zillow') != -1:
+                sites.append('Zillow')               
+            elif row['link'].find('craigslist') != -1:
+                sites.append('Craigslist')
+            else:
+                raise Exception('Appears non-valid link.')
+            prices.append(int(row['price_number']))
+
+        plt.scatter(sites, prices, color='r', s=100)
+        plt.xlabel('Site')
+        plt.ylabel('Price')
+        plt.show()
 
 
 def zillow(driver, url, listings):
